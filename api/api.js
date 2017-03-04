@@ -9,28 +9,29 @@ import http from 'http';
 import SocketIo from 'socket.io';
 import mongoose from 'mongoose';
 import dbConfig from './config';
+import ConnectMongo from 'connect-mongo';
 
 const pretty = new PrettyError();
 const app = express();
-
 const server = new http.Server(app);
-
 const io = new SocketIo(server);
-io.path('/ws');
+const MongoStore = ConnectMongo(session);
 
+io.path('/ws');
 mongoose.connect(dbConfig.db);
 app.use(session({
-  secret: 'react and redux rule!!!!',
+  secret: 'jzc rule!!!!',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 60000 }
+  cookie: {maxAge: 1000 * 60 * 60 * 4},
+  store: new MongoStore({
+    url: 'mongodb://localhost/jzc'
+  })
 }));
 app.use(bodyParser.json());
 
-
 app.use((req, res) => {
   const splittedUrlPath = req.url.split('?')[0].split('/').slice(1);
-
   const {action, params} = mapUrl(actions, splittedUrlPath);
 
   if (action) {
@@ -53,7 +54,6 @@ app.use((req, res) => {
     res.status(404).end('NOT FOUND');
   }
 });
-
 
 const bufferSize = 100;
 const messageBuffer = new Array(bufferSize);

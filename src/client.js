@@ -12,9 +12,11 @@ import { Router, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 import { ReduxAsyncConnect } from 'redux-async-connect';
 import useScroll from 'scroll-behavior/lib/useStandardScroll';
+import jquery from 'jquery';
 
 import getRoutes from './routes';
 
+global.$ = global.jquery = jquery;
 const client = new ApiClient();
 const _browserHistory = useScroll(() => browserHistory)();
 const dest = document.getElementById('content');

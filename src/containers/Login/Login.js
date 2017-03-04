@@ -10,44 +10,79 @@ export default class Login extends Component {
   static propTypes = {
     user: PropTypes.object,
     login: PropTypes.func,
-    logout: PropTypes.func
-  }
+    register: PropTypes.func,
+  };
 
-  handleSubmit = (event) => {
-    event.preventDefault();
-    const input = this.refs.username;
-    this.props.login(input.value);
-    input.value = '';
-  }
+  showBack = () => {
+    const againEle = this.refs['pass-again'];
+    const goEle = this.refs['chat-submit'];
+    const registerEle = this.refs['chat-register'];
+    const contentEle = this.refs['name-write'];
+    const backEle = this.refs['go-back'];
+
+    if ($(againEle).css('display') === 'none') {
+      $(againEle).slideDown(300);
+      $(goEle).animate({width: 0, opacity: 0}, 300);
+      $(registerEle).animate({width: '60%'}, 300);
+      $(contentEle).animate({height: 310});
+      $(backEle).show();
+    } else if ($(againEle).css('display') === 'block') {
+      const name = this.refs['chat-name'].value;
+      const password = this.refs['chat-password'].value;
+      const passwordAgain = this.refs['chat-again'].value;
+      if ((password !== passwordAgain) || password === '') {
+        alert('密码不一致或不能为空');
+      } else {
+        this.props.register({name, password});
+      }
+    }
+  };
+
+  goBack = () => {
+    const goEle = this.refs['chat-submit'];
+    const registerEle = this.refs['chat-register'];
+    const contentEle = this.refs['name-write'];
+    const againEle = this.refs['pass-again'];
+    const backEle = this.refs['go-back'];
+    $(againEle).slideUp(300);
+    $(backEle).hide();
+    $(goEle).animate({width: '60%', opacity: 0.8}, 300);
+    $(registerEle).animate({width: 40}, 300);
+    $(contentEle).animate({height: 280});
+  };
+
+  goLogin = () => {
+    const name = this.refs['chat-name'].value;
+    const password = this.refs['chat-password'].value;
+    this.props.login({name, password});
+  };
 
   render() {
-    const {user, logout} = this.props;
-    const styles = require('./Login.scss');
     return (
-      <div className={styles.loginPage + ' container'}>
+      <div ref="name-write" className="chat-login">
         <Helmet title="Login"/>
-        <h1>Login</h1>
-        {!user &&
-        <div>
-          <form className="login-form form-inline" onSubmit={this.handleSubmit}>
-            <div className="form-group">
-              <input type="text" ref="username" placeholder="Enter a username" className="form-control"/>
-            </div>
-            <button className="btn btn-success" onClick={this.handleSubmit}><i className="fa fa-sign-in"/>{' '}Log In
-            </button>
-          </form>
-          <p>This will "log you in" as this user, storing the username in the session of the API server.</p>
+        <div className="chat-l-head">
+          欢迎登录聊天系统
         </div>
-        }
-        {user &&
-        <div>
-          <p>You are currently logged in as {user.name}.</p>
-
-          <div>
-            <button className="btn btn-danger" onClick={logout}><i className="fa fa-sign-out"/>{' '}Log Out</button>
-          </div>
+        <div className="chat-l-upload">
+          <img src=""/>
+          <span>点击上传</span>
         </div>
-        }
+        <input className="upload" ref="upload" type="file"/>
+        <div className="chat-l-name">
+          <input placeholder="昵称" type="text" ref="chat-name"/>
+        </div>
+        <div className="chat-l-name">
+          <input placeholder="密码" ref="chat-password" type="password"/>
+        </div>
+        <div className="chat-l-name pass-again" ref="pass-again">
+          <input placeholder="确认密码" ref="chat-again" type="password"/>
+        </div>
+        <div className="chat-l-name">
+          <button onClick={this.goBack} className="go-back" ref="go-back">{'<'}</button>
+          <button onClick={this.goLogin} className="chat-go" ref="chat-submit">GO</button>
+          <button onClick={this.showBack} ref="chat-register" className="chat-register">注册</button>
+        </div>
       </div>
     );
   }
