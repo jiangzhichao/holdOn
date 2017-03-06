@@ -4,6 +4,7 @@ import {isLoaded as isAuthLoaded, load as loadAuth} from 'redux/modules/auth';
 import {
   App,
   Login,
+  Chat
 } from 'containers';
 
 export default (store) => {
@@ -34,7 +35,7 @@ export default (store) => {
 
       { /* Routes requiring login */ }
       <Route onEnter={requireLogin}>
-        xxx
+        <Route path="/chat" component={Chat}/>
       </Route>
 
     </Route>

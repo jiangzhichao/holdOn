@@ -37,6 +37,7 @@ export default class App extends Component {
   };
 
   componentWillReceiveProps(nextProps) {
+    console.log(nextProps);
     if (!this.props.user && nextProps.user) {
       // login
       this.props.pushState('/chat');

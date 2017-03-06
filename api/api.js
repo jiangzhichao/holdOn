@@ -23,7 +23,7 @@ app.use(session({
   secret: 'jzc rule!!!!',
   resave: false,
   saveUninitialized: false,
-  cookie: {maxAge: 1000 * 60 * 60 * 4},
+  cookie: {maxAge: 1000 * 60 * 60},
   store: new MongoStore({
     url: 'mongodb://localhost/jzc'
   })
@@ -68,6 +68,7 @@ if (config.apiPort) {
     console.info('==> 💻  Send requests to http://%s:%s', config.apiHost, config.apiPort);
   });
 
+  const nameArr = [];
   io.on('connection', (socket) => {
     socket.emit('news', {msg: `'Hello World!' from server`});
 
@@ -87,6 +88,27 @@ if (config.apiPort) {
       messageIndex++;
       io.emit('msg', data);
     });
+
+    socket.on('name', function (data) {
+      nameArr.push({name: data, id: socket.id});
+      socket.broadcast.emit('addUser', {name: data, id: socket.id});
+      socket.emit('nameList', nameArr);
+      socket.emit('info', {name: data, id: socket.id});
+    });
+
+    socket.on('disconnect', function () {
+      nameArr.forEach(function (item, index) {
+        if (item.id === socket.id) nameArr.splice(index, 1);
+      });
+      io.sockets.emit('removeUser', {id: socket.id});
+    });
+
+    socket.on('message', function (data) {
+      console.log(data);
+      const id = data.id;
+      io.sockets.sockets[id].emit('message', data);
+    });
+
   });
   io.listen(runnable);
 } else {
