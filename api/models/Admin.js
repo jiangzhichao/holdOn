@@ -10,7 +10,8 @@ const AdminSchema = mongoose.Schema({
   avatar       : {type: ObjectId, ref: 'File'},
   avatar_url   : String,
   create_time  : {type: Date, default: Date.now},
-  update_time  : Date
+  update_time  : Date,
+  message_off_line: {type: Array},
 });
 
 // generating a hash

@@ -63,21 +63,41 @@ export default class Chat extends Component {
     });
   };
 
+  receiveMsg = (data) => {
+    console.log(data);
+    data.type = 'server';
+    const {message, adminList, newMessageObj} = this.state;
+    if (message[data._id]) {
+      if (message[data._id].length > 100) message[data._id].shift();
+      message[data._id].push(data);
+    } else {
+      message[data._id] = [];
+      message[data._id].push(data);
+    }
+    store.set('message', message);
+    // if (currentUser.userId !== data._id)
+    newMessageObj[data._id] = data;
+    this.setState({
+      newMessageObj,
+      adminList,
+      message
+    });
+  };
+
   socketInit = () => {
     const socket = io('', {path: '/ws'});
     const {name, _id} = this.props.user;
 
     socket.on('connect', () => {
       this.setState({socket});
+      socket.emit('name', {
+        name,
+        id: _id
+      });
     });
 
     socket.on('info', (data) => {
       console.log(data);
-    });
-
-    socket.emit('name', {
-      name,
-      id: _id
     });
 
     socket.on('userList', (data) => {
@@ -103,24 +123,14 @@ export default class Chat extends Component {
       this.checkOnline(adminList, userList);
     });
 
-    socket.on('message', (data) => {
-      data.type = 'server';
-      const {message, adminList, newMessageObj} = this.state;
-      if (message[data._id]) {
-        if (message[data._id].length > 100) message[data._id].shift();
-        message[data._id].push(data);
+    socket.on('message', (dataServer) => {
+      if (dataServer instanceof Array) {
+        dataServer.forEach((item) => {
+          this.receiveMsg(item);
+        });
       } else {
-        message[data._id] = [];
-        message[data._id].push(data);
+        this.receiveMsg(dataServer);
       }
-      store.set('message', message);
-      // if (currentUser.userId !== data._id)
-      newMessageObj[data._id] = data;
-      this.setState({
-        newMessageObj,
-        adminList,
-        message
-      });
     });
   };
 
@@ -164,7 +174,8 @@ export default class Chat extends Component {
     if (event.ctrlKey && event.keyCode === 13) {
       const {currentUser, socket, editMessage, message} = this.state;
       const {name, _id} = this.props.user;
-      const sendMsg = {id: currentUser.id, val: editMessage, name, _id, type: 'self'};
+      const val = editMessage.replace(/[\r\n]/g, '<br/>');
+      const sendMsg = {id: currentUser.id, val, name, _id, type: 'self', to: currentUser.userId};
       socket.emit('message', sendMsg);
 
       if (message[currentUser.userId]) {

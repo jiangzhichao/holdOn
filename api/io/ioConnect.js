@@ -1,6 +1,10 @@
 /**
  * Created by jiang on 2017/3/6.
  */
+import saveOffLineMsg from './saveOffLineMsg';
+import sendOffLineMsg from './sendOffLineMsg';
+
+
 export default function ioConnect(io, runnable) {
   const bufferSize = 100;
   const messageBuffer = new Array(bufferSize);
@@ -26,6 +30,9 @@ export default function ioConnect(io, runnable) {
     });
 
     socket.on('name', (data) => {
+      sendOffLineMsg(data.id).then((doc) => {
+        socket.emit('message', doc);
+      });
       socket.name = data.name;
       socket.userId = data.id;
       socket.broadcast.emit('addUser', {name: data.name, id: socket.id, userId: data.id});
@@ -45,7 +52,9 @@ export default function ioConnect(io, runnable) {
       if (toSocket) {
         toSocket.emit('message', data);
       } else {
-        console.log('这个地方应该发送离线消息');
+        delete data.id;
+        data.type = 'server';
+        saveOffLineMsg(data);
       }
     });
 
