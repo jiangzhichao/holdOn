@@ -43,6 +43,7 @@ export default class Chat extends Component {
   }
 
   componentDidMount() {
+    Notification.requestPermission();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -64,7 +65,8 @@ export default class Chat extends Component {
   };
 
   receiveMsg = (data) => {
-    console.log(data);
+    const notification = new Notification(data.name, {body: data.val});
+    console.log(notification);
     data.type = 'server';
     const {message, adminList, newMessageObj} = this.state;
     if (message[data._id]) {
