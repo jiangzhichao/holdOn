@@ -10,6 +10,9 @@ const LOGOUT_FAIL = 'redux-example/auth/LOGOUT_FAIL';
 const REGISTER_SUCCESS = 'jzc/auth/REGISTER_SUCCESS';
 const REGISTER_FAIL = 'jzc/auth/REGISTER_FAIL';
 const REGISTER = 'jzc/auth/REGISTER';
+const ALL_ADMIN = 'jzc/auth/ALL_ADMIN';
+const ALL_ADMIN_SUCCESS = 'jzc/auth/ALL_ADMIN_SUCCESS';
+const ALL_ADMIN_FAIL = 'jzc/auth/ALL_ADMIN_FAIL';
 
 const initialState = {
   loaded: false
@@ -86,6 +89,22 @@ export default function reducer(state = initialState, action = {}) {
         ...state,
         register: action.error
       };
+    case ALL_ADMIN:
+      return {
+        ...state,
+        allAdminGetting: true,
+        addAdmin: []
+      };
+    case ALL_ADMIN_FAIL:
+      return {
+        ...state,
+        allAdminError: action.error
+      };
+    case ALL_ADMIN_SUCCESS:
+      return {
+        ...state,
+        allAdmin: action.result.allAdmin
+      };
     default:
       return state;
   }
@@ -103,7 +122,7 @@ export function load() {
   };
 }
 
-export function login({name, password}) {
+function _login({name, password}) {
   return {
     types: [LOGIN, LOGIN_SUCCESS, LOGIN_FAIL],
     promise: (client) => client.post('/admin/login', {
@@ -115,6 +134,28 @@ export function login({name, password}) {
   };
 }
 
+
+export function login(data, callback) {
+  return (dispatch) => {
+    dispatch(_login(data))
+      .then(callback);
+  };
+}
+
+function _getAllAdmin() {
+  return {
+    types: [ALL_ADMIN, ALL_ADMIN_SUCCESS, ALL_ADMIN_FAIL],
+    promise: (client) => client.get('/admin/all')
+  };
+}
+
+export function getAllAdmin(callback) {
+  return (dispatch) => {
+    dispatch(_getAllAdmin())
+      .then(callback);
+  };
+}
+
 export function logout() {
   return {
     types: [LOGOUT, LOGOUT_SUCCESS, LOGOUT_FAIL],
@@ -123,8 +164,7 @@ export function logout() {
 }
 
 // register
-export function register({name, password}) {
-  console.log(name, password);
+function _register({name, password}) {
   return {
     types: [REGISTER, REGISTER_SUCCESS, REGISTER_FAIL],
     promise: (client) => client.post('/admin/register', {
@@ -133,5 +173,12 @@ export function register({name, password}) {
         password
       }
     })
+  };
+}
+
+export function register(data, callback) {
+  return (dispatch) => {
+    dispatch(_register(data))
+      .then(callback);
   };
 }

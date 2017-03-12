@@ -1,8 +1,7 @@
 import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux';
 import Helmet from 'react-helmet';
-import {isLoaded as isInfoLoaded, load as loadInfo} from 'redux/modules/info';
-import {isLoaded as isAuthLoaded, load as loadAuth, logout} from 'redux/modules/auth';
+import {isLoaded as isAuthLoaded, load as loadAuth} from 'redux/modules/auth';
 import {push} from 'react-router-redux';
 import config from '../../config';
 import {asyncConnect} from 'redux-async-connect';
@@ -11,9 +10,6 @@ import {asyncConnect} from 'redux-async-connect';
   promise: ({store: {dispatch, getState}}) => {
     const promises = [];
 
-    if (!isInfoLoaded(getState())) {
-      promises.push(dispatch(loadInfo()));
-    }
     if (!isAuthLoaded(getState())) {
       promises.push(dispatch(loadAuth()));
     }
@@ -23,12 +19,11 @@ import {asyncConnect} from 'redux-async-connect';
 }])
 @connect(
   state => ({user: state.auth.user}),
-  {logout, pushState: push})
+  {pushState: push})
 export default class App extends Component {
   static propTypes = {
     children: PropTypes.object.isRequired,
     user: PropTypes.object,
-    logout: PropTypes.func.isRequired,
     pushState: PropTypes.func.isRequired
   };
 
@@ -37,20 +32,10 @@ export default class App extends Component {
   };
 
   componentWillReceiveProps(nextProps) {
-    console.log(nextProps);
-    if (!this.props.user && nextProps.user) {
-      // login
-      this.props.pushState('/chat');
-    } else if (this.props.user && !nextProps.user) {
-      // logout
+    if (this.props.user && !nextProps.user) {
       this.props.pushState('/');
     }
   }
-
-  handleLogout = (event) => {
-    event.preventDefault();
-    this.props.logout();
-  };
 
   render() {
     const styles = require('./App.scss');

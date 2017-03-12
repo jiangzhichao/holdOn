@@ -6,167 +6,279 @@ import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux';
 import Helmet from 'react-helmet';
 import io from 'socket.io-client';
+import {getAllAdmin} from 'redux/modules/auth';
+import store from 'store';
 
 @connect(
-  state => ({user: state.auth.user}), {}
+  state => ({
+    user: state.auth.user,
+    allAdmin: state.auth.allAdmin
+  }),
+  {
+    getAllAdmin
+  }
 )
 export default class Chat extends Component {
   static propTypes = {
-    user: PropTypes.object
+    user: PropTypes.object,
+    getAllAdmin: PropTypes.func,
+    allAdmin: PropTypes.array
   };
 
+  constructor(props, context) {
+    super(props, context);
+    this.state = {
+      socket: {},
+      userList: [],
+      currentUser: {},
+      adminList: [],
+      message: store.get('message') || {},
+      editMessage: '',
+      newMessageObj: {}
+    };
+  }
+
+  componentWillMount() {
+    this._getAllAdmin();
+  }
+
   componentDidMount() {
-    this.setSocket(this.props.user);
   }
 
   componentWillReceiveProps(nextProps) {
-    console.log(nextProps);
+    const {allAdmin} = nextProps;
+    this.setState({
+      adminList: allAdmin
+    });
+    this.socketInit();
   }
 
-  setSocket = (user) => {
-    let selfName = '';
-    let selfId = '';
-    let currentUser = null;
-    const nameValue = user.name;
-    selfName = nameValue;
+  componentDidUpdate() {
+    const eles = this.refs['message-list'].querySelectorAll('.line');
+    if (eles.length > 0) eles[eles.length - 1].scrollIntoView();
+  }
+
+  _getAllAdmin = () => {
+    this.props.getAllAdmin(() => {
+    });
+  };
+
+  socketInit = () => {
     const socket = io('', {path: '/ws'});
+    const {name, _id} = this.props.user;
+
     socket.on('connect', () => {
-      console.log('连上了');
-      socket.emit('name', nameValue);
+      this.setState({socket});
     });
 
     socket.on('info', (data) => {
-      selfId = data.id;
-      $('#me').text(selfName + '(' + data.id + ')');
+      console.log(data);
     });
 
-    function bindClick() {
-      $(this)
-        .addClass('active')
-        .siblings()
-        .removeClass('active');
-
-      const id = $(this).attr('id');
-      const name = $(this).find('h2').text();
-      currentUser = {id: id, name: name};
-      const ele = $('#message' + id);
-      ele.show(() => {
-        const eleD = ele.find('div').last()[0];
-        if (eleD) eleD.scrollIntoView();
-      });
-      ele.siblings().hide();
-    }
-
-    socket.on('nameList', (data) => {
-      const userList = $('#user-list')[0];
-      let htmlStr = '';
-      data.forEach((item) => {
-        htmlStr += '<li id="' + item.id + '">' +
-          '<div class="user-avatar">' +
-          '</div>' +
-          '<div class="user-info">' +
-          '<h2>' + item.name + '</h2>' +
-          '</div>' +
-          '</li>';
-        userList.innerHTML = htmlStr;
-
-        const messageEle = $('#message-list');
-        const ele = $('<div id="message' + item.id + '"></div>');
-        messageEle.append(ele);
-      });
-
-      $('#user-list').delegate('li', 'click', bindClick);
-      $('#user-list li').eq(0).click();
+    socket.emit('name', {
+      name,
+      id: _id
     });
 
-    function writeServer(message) {
-      const id = message.self;
-      const name = message.name;
-      const conotentEle = $('#message' + id);
-      const htmlStr = '<div class="chat-other">' +
-        '<div class="other-left">' +
-        '<div class="other-small">' +
-
-        '</div>' +
-        '</div>' +
-        '<div class="other-right">' +
-        '<h3>' + name + '</h3>' +
-        '<div class="other-message">' +
-        '<span>' +
-        message.value +
-        '</span>' +
-        '</div>' +
-        '</div>' +
-        '</div>';
-      const ele = $(htmlStr);
-      conotentEle.append(ele);
-      conotentEle.find('div').last()[0].scrollIntoView();
-    }
-
-    function writeMyself(message) {
-      const id = currentUser.id;
-      const conotentEle = $('#message' + id);
-      const htmlStr = '<div class="chat-self">' +
-        '<div class="self-right">' +
-        '<div class="self-small">' +
-        '</div>' +
-        '</div>' +
-        '<div class="self-left">' +
-        '<h3>' + selfName + '</h3>' +
-        '<div class="self-message">' +
-        '<span>' + message + '</span>' +
-        '</div>' +
-        '</div>' +
-        '</div>';
-      const ele = $(htmlStr);
-      conotentEle.append(ele);
-      conotentEle.find('div').last()[0].scrollIntoView();
-    }
+    socket.on('userList', (data) => {
+      const {adminList} = this.state;
+      this.setState({
+        currentUser: data[0]
+      });
+      this.checkOnline(adminList, data);
+    });
 
     socket.on('addUser', (data) => {
-      const userList = $('#user-list')[0];
-      const li = document.createElement('li');
-      li.id = data.id;
-      li.innerHTML = '<div class="user-avatar">' +
-        '</div>' +
-        '<div class="user-info">' +
-        '<h2>' + data.name + '</h2>' +
-        '</div>';
-      userList.appendChild(li);
-
-      const messageEle = $('#message-list');
-      const ele = $('<div style="display: none;" id="message' + data.id + '"></div>');
-      messageEle.append(ele);
+      const {adminList, userList} = this.state;
+      userList.push(data);
+      this.checkOnline(adminList, userList);
     });
 
     socket.on('removeUser', (data) => {
-      const id = data.id;
-      $('#' + id).remove();
-      $('#message' + id).remove();
+      let {userList} = this.state;
+      const {adminList} = this.state;
+      userList = userList.filter((item) => {
+        return item.id !== data.id;
+      });
+      this.checkOnline(adminList, userList);
     });
 
     socket.on('message', (data) => {
-      writeServer(data);
+      data.type = 'server';
+      const {message, adminList, newMessageObj} = this.state;
+      if (message[data._id]) {
+        if (message[data._id].length > 100) message[data._id].shift();
+        message[data._id].push(data);
+      } else {
+        message[data._id] = [];
+        message[data._id].push(data);
+      }
+      store.set('message', message);
+      // if (currentUser.userId !== data._id)
+      newMessageObj[data._id] = data;
+      this.setState({
+        newMessageObj,
+        adminList,
+        message
+      });
+    });
+  };
+
+  checkOnline = (allAdmin, userList) => {
+    const adminList = allAdmin.map((item) => {
+      const result = {...item};
+      for (let index = 0, len = userList.length; index < len; index++) {
+        if (item._id === userList[index].userId) {
+          result.online = true;
+          result.socketId = userList[index].id;
+          break;
+        } else {
+          result.online = false;
+          result.socketId = '';
+        }
+      }
+      return result;
+    }).sort((one, two) => {
+      if (one.online && two.online) return 0;
+      if (one.online && !two.online) return -1;
+      if (!one.online && two.online) return 1;
+      if (!one.online && !two.online) return 0;
     });
 
-    document.addEventListener('keydown', (event) => {
-      if (event.ctrlKey && event.keyCode === 13) {
-        const ele = $('#send-text');
-        let value = ele.val();
-        value = value.replace(/[\r\n]/g, '<br/>');
-        socket.emit('message', {id: currentUser.id, value: value, name: selfName, self: selfId});
-        ele.val('');
-        writeMyself(value);
+    this.setState({
+      adminList,
+      userList
+    });
+  };
+
+  changeCurrentUser = (userId, name, id) => {
+    const {newMessageObj} = this.state;
+    delete newMessageObj[userId];
+    this.setState({
+      newMessageObj,
+      currentUser: {userId, name, id}
+    });
+  };
+
+  sendMessage = (event) => {
+    if (event.ctrlKey && event.keyCode === 13) {
+      const {currentUser, socket, editMessage, message} = this.state;
+      const {name, _id} = this.props.user;
+      const sendMsg = {id: currentUser.id, val: editMessage, name, _id, type: 'self'};
+      socket.emit('message', sendMsg);
+
+      if (message[currentUser.userId]) {
+        if (message[currentUser.userId].length > 100) message[currentUser.userId].shift();
+        message[currentUser.userId].push(sendMsg);
+      } else {
+        message[currentUser.userId] = [];
+        message[currentUser.userId].push(sendMsg);
+      }
+      store.set('message', message);
+      this.setState({
+        message,
+        editMessage: ''
+      });
+    }
+  };
+
+  editMessage = (event) => {
+    const editMessage = event.target.value;
+    this.setState({
+      editMessage
+    });
+  };
+
+  rendMessage = () => {
+    const {message, currentUser} = this.state;
+    const messageArray = message[currentUser.userId] || [];
+    return messageArray.map((item, index) => {
+      if (item.type === 'server') {
+        return (
+          <div className="chat-other line" key={`server${index}`}>
+            <div className="other-left">
+              <div className="other-small">
+
+              </div>
+            </div>
+            <div className="other-right">
+              <h3>{item.name}</h3>
+              <div className="other-message">
+                <span>{item.val}</span>
+              </div>
+            </div>
+          </div>
+        );
+      } else if (item.type === 'self') {
+        return (
+          <div className="chat-self line" key={`self${index}`}>
+            <div className="self-right">
+              <div className="self-small">
+
+              </div>
+            </div>
+            <div className="self-left">
+              <h3>{item.name}</h3>
+              <div className="self-message">
+                <span>{item.val}</span>
+              </div>
+            </div>
+          </div>
+        );
       }
     });
   };
 
+  renderUserList = () => {
+    const {currentUser, adminList, newMessageObj, message} = this.state;
+
+    function checkClass(item) {
+      let className = '';
+      if ((item._id === currentUser.userId) && !newMessageObj[item._id]) {
+        className = 'active';
+      } else if ((item._id === currentUser.userId) && newMessageObj[item._id]) {
+        className = 'active new-message';
+      } else if (!(item._id === currentUser.userId) && newMessageObj[item._id]) {
+        className = 'new-message';
+      }
+      return className;
+    }
+
+    return adminList.map((item, index) => {
+      const messageArray = message[item._id];
+      const lastMessage = messageArray ? messageArray[messageArray.length - 1].val : ' - - - ';
+      return (
+        <li key={`admins${index}`}
+            className={checkClass(item)}
+            onClick={this.changeCurrentUser.bind(this, item._id, item.name, item.socketId)}>
+          <div className={item.online ? 'user-avatar online' : 'user-avatar'}>
+          </div>
+          <div className="user-info">
+            <h2>{item.name}</h2>
+            {lastMessage}
+          </div>
+        </li>
+      );
+    });
+  };
+
+  renderTitle = () => {
+    const {name} = this.props.user;
+    const {socket} = this.state;
+    const {id = ' 连接中。。。 '} = socket;
+    return (
+      <span className="me">{name + '(socket:' + id + ')'}</span>
+    );
+  };
+
   render() {
+    console.log('chat state -->', this.state);
+    const {editMessage} = this.state;
     return (
       <div className="chat-home">
-        <Helmet title="CHat"/>
+        <Helmet title="Chat"/>
         <div className="chat-head">
-          <span className="me" id="me"></span>
+          {this.renderTitle()}
           <ul>
             <li className="close"></li>
             <li className="small"></li>
@@ -179,16 +291,18 @@ export default class Chat extends Component {
 
             </div>
             <div className="user">
-              <ul id="user-list">
+              <ul id="user-list" ref="user-list">
+                {this.renderUserList()}
               </ul>
             </div>
           </div>
           <div className="chat-right">
-            <div className="chat-message" id="message-list">
+            <div className="chat-message" id="message-list" ref="message-list">
+              {this.rendMessage()}
             </div>
             <div className="chat-send">
-                <textarea className="text-area" autoFocus id="send-text">
-
+                <textarea onChange={this.editMessage} onKeyDown={this.sendMessage} className="text-area" autoFocus
+                          id="send-text" ref="send-text" value={editMessage}>
                 </textarea>
             </div>
           </div>

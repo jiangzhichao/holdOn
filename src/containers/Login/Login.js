@@ -1,16 +1,18 @@
 import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux';
+import {push} from 'react-router-redux';
 import Helmet from 'react-helmet';
 import * as authActions from 'redux/modules/auth';
 
 @connect(
   state => ({user: state.auth.user}),
-  authActions)
+  {...authActions, push})
 export default class Login extends Component {
   static propTypes = {
     user: PropTypes.object,
     login: PropTypes.func,
     register: PropTypes.func,
+    push: PropTypes.func
   };
 
   showBack = () => {
@@ -33,7 +35,9 @@ export default class Login extends Component {
       if ((password !== passwordAgain) || password === '') {
         alert('密码不一致或不能为空');
       } else {
-        this.props.register({name, password});
+        this.props.register({name, password}, () => {
+          this.props.push('/chat');
+        });
       }
     }
   };
@@ -54,7 +58,9 @@ export default class Login extends Component {
   goLogin = () => {
     const name = this.refs['chat-name'].value;
     const password = this.refs['chat-password'].value;
-    this.props.login({name, password});
+    this.props.login({name, password}, () => {
+      this.props.push('/chat');
+    });
   };
 
   render() {

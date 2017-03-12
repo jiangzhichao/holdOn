@@ -72,6 +72,7 @@ body {
   width: 270px;
   float: left;
   height: 100%;
+  overflow: auto;
   border-right: 1px solid #ebebeb;
 }
 
@@ -79,6 +80,10 @@ body {
   height: 100%;
   margin-left: 270px;
   background-color: #fcfcfc;
+}
+
+.user ul {
+  overflow: hidden;
 }
 
 .user ul li {
@@ -329,3 +334,17 @@ body {
 .upload {
   display: none !important;
 }
+
+.online {
+  background-color: #ffdb82;
+}
+
+@keyframes newmessage {
+  from {background-color: #eee;}
+  to {background-color: #f7e7be;}
+}
+
+.new-message {
+  animation: newmessage 0.5s linear 0s infinite alternate;
+}
+
