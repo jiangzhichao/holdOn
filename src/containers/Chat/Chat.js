@@ -1,7 +1,6 @@
 /**
  * Created by jiang on 2017/3/4.
  */
-
 import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux';
 import Helmet from 'react-helmet';
@@ -11,8 +10,8 @@ import store from 'store';
 
 @connect(
   state => ({
-    user: state.auth.user,
-    allAdmin: state.auth.allAdmin
+    allAdmin: state.auth.allAdmin,
+    user: state.auth.user
   }),
   {
     getAllAdmin
@@ -44,7 +43,7 @@ export default class Chat extends Component {
   }
 
   componentDidMount() {
-    Notification.requestPermission();
+    if (Notification) Notification.requestPermission();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -66,8 +65,10 @@ export default class Chat extends Component {
   };
 
   receiveMsg = (data) => {
-    const notification = new Notification(data.name, {body: data.val});
-    console.log(notification);
+    if (Notification) {
+      const notification = new Notification(data.name, {body: data.val});
+      console.log(notification);
+    }
     data.type = 'server';
     const {message, adminList, newMessageObj} = this.state;
     if (message[data._id]) {
@@ -180,26 +181,30 @@ export default class Chat extends Component {
     });
   };
 
-  sendMessage = (event) => {
-    if (event.ctrlKey && event.keyCode === 13) {
-      const {currentUser, socket, editMessage, message} = this.state;
-      const {name, _id} = this.props.user;
-      const val = editMessage.replace(/[\r\n]/g, '<br/>');
-      const sendMsg = {id: currentUser.id, val, name, _id, type: 'self', to: currentUser.userId};
-      socket.emit('message', sendMsg);
+  sendMessage = () => {
+    const {currentUser, socket, editMessage, message} = this.state;
+    const {name, _id} = this.props.user;
+    const val = editMessage.replace(/[\r\n]/g, '<br/>');
+    const sendMsg = {id: currentUser.id, val, name, _id, type: 'self', to: currentUser.userId};
+    socket.emit('message', sendMsg);
 
-      if (message[currentUser.userId]) {
-        if (message[currentUser.userId].length > 100) message[currentUser.userId].shift();
-        message[currentUser.userId].push(sendMsg);
-      } else {
-        message[currentUser.userId] = [];
-        message[currentUser.userId].push(sendMsg);
-      }
-      store.set('message', message);
-      this.setState({
-        message,
-        editMessage: ''
-      });
+    if (message[currentUser.userId]) {
+      if (message[currentUser.userId].length > 100) message[currentUser.userId].shift();
+      message[currentUser.userId].push(sendMsg);
+    } else {
+      message[currentUser.userId] = [];
+      message[currentUser.userId].push(sendMsg);
+    }
+    store.set('message', message);
+    this.setState({
+      message,
+      editMessage: ''
+    });
+  };
+
+  sendKeyDown = (event) => {
+    if (event.ctrlKey && event.keyCode === 13) {
+      this.sendMessage();
     }
   };
 
@@ -335,9 +340,10 @@ export default class Chat extends Component {
               {this.rendMessage()}
             </div>
             <div className="chat-send">
-                <textarea onChange={this.editMessage} onKeyDown={this.sendMessage} className="text-area" autoFocus
+                <textarea onChange={this.editMessage} onKeyDown={this.sendKeyDown} className="text-area" autoFocus
                           id="send-text" ref="send-text" value={editMessage}>
                 </textarea>
+              <div onClick={this.sendMessage} className="send-btn">发送</div>
             </div>
           </div>
         </div>

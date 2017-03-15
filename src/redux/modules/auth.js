@@ -15,7 +15,8 @@ const ALL_ADMIN_SUCCESS = 'jzc/auth/ALL_ADMIN_SUCCESS';
 const ALL_ADMIN_FAIL = 'jzc/auth/ALL_ADMIN_FAIL';
 
 const initialState = {
-  loaded: false
+  loaded: false,
+  getAllAdmin: false
 };
 
 export default function reducer(state = initialState, action = {}) {
@@ -30,7 +31,7 @@ export default function reducer(state = initialState, action = {}) {
         ...state,
         loading: false,
         loaded: true,
-        user: action.result
+        user: action.result.user
       };
     case LOAD_FAIL:
       return {
@@ -42,7 +43,8 @@ export default function reducer(state = initialState, action = {}) {
     case LOGIN:
       return {
         ...state,
-        loggingIn: true
+        loggingIn: true,
+        user: null
       };
     case LOGIN_SUCCESS:
       return {
@@ -77,6 +79,7 @@ export default function reducer(state = initialState, action = {}) {
     case REGISTER:
       return {
         ...state,
+        user: null,
         registering: true,
       };
     case REGISTER_SUCCESS:
@@ -92,18 +95,21 @@ export default function reducer(state = initialState, action = {}) {
     case ALL_ADMIN:
       return {
         ...state,
-        allAdminGetting: true,
-        addAdmin: []
-      };
-    case ALL_ADMIN_FAIL:
-      return {
-        ...state,
-        allAdminError: action.error
+        getAllAdmin: false,
+        allAdmin: null
       };
     case ALL_ADMIN_SUCCESS:
       return {
         ...state,
+        getAllAdmin: true,
         allAdmin: action.result.allAdmin
+      };
+    case ALL_ADMIN_FAIL:
+      return {
+        ...state,
+        allAdmin: null,
+        getAllAdmin: false,
+        allAdminError: action.error
       };
     default:
       return state;
@@ -134,7 +140,6 @@ function _login({name, password}) {
   };
 }
 
-
 export function login(data, callback) {
   return (dispatch) => {
     dispatch(_login(data))
@@ -142,7 +147,7 @@ export function login(data, callback) {
   };
 }
 
-function _getAllAdmin() {
+export function _getAllAdmin() {
   return {
     types: [ALL_ADMIN, ALL_ADMIN_SUCCESS, ALL_ADMIN_FAIL],
     promise: (client) => client.get('/admin/all')
@@ -152,7 +157,9 @@ function _getAllAdmin() {
 export function getAllAdmin(callback) {
   return (dispatch) => {
     dispatch(_getAllAdmin())
-      .then(callback);
+      .then((data) => {
+        if (callback) callback(data);
+      });
   };
 }
 

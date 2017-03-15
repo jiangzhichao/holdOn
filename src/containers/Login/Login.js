@@ -1,19 +1,17 @@
 import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux';
-import {push} from 'react-router-redux';
 import Helmet from 'react-helmet';
 import Dropzone from 'react-dropzone';
 import * as authActions from 'redux/modules/auth';
 
 @connect(
   state => ({user: state.auth.user}),
-  {...authActions, push})
+  {...authActions})
 export default class Login extends Component {
   static propTypes = {
     user: PropTypes.object,
     login: PropTypes.func,
     register: PropTypes.func,
-    push: PropTypes.func
   };
 
   constructor(props, context) {
@@ -63,7 +61,6 @@ export default class Login extends Component {
         alert('请上传头像');
       } else {
         this.props.register({name, password, file: base}, () => {
-          this.props.push('/chat');
         });
       }
     }
@@ -86,7 +83,6 @@ export default class Login extends Component {
     const name = this.refs['chat-name'].value;
     const password = this.refs['chat-password'].value;
     this.props.login({name, password}, () => {
-      this.props.push('/chat');
     });
   };
 

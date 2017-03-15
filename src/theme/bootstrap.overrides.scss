@@ -191,6 +191,25 @@ body {
   height: calc(100% - 348px);
   border-top: 1px solid #ebebeb;
   padding: 10px;
+  position: relative;
+}
+
+.chat-send .send-btn {
+  width: 60px;
+  height: 29px;
+  border-radius: 3px;
+  background-color: #eee;
+  line-height: 29px;
+  text-align: center;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.chat-send .send-btn:hover {
+  opacity: 0.8;
 }
 
 .text-area {

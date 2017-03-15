@@ -32,7 +32,9 @@ export default class App extends Component {
   };
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.user && !nextProps.user) {
+    if (!this.props.user && nextProps.user) {
+      this.props.pushState('/chat');
+    } else if (this.props.user && !nextProps.user) {
       this.props.pushState('/');
     }
   }
