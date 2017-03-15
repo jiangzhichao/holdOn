@@ -108,6 +108,12 @@ body {
   height: 48px;
   border-radius: 4px;
   background-color: #ddd;
+  overflow: hidden;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
 }
 
 .user-info {
@@ -148,6 +154,12 @@ body {
   border-radius: 4px;
   background-color: #eee;
   margin: auto;
+  overflow: hidden;
+}
+
+.other-small img, .self-small img {
+  width: 100%;
+  height: 100%;
 }
 
 .other-message {
@@ -159,7 +171,7 @@ body {
   text-align: right;
 }
 
-.other-message span, .self-message span {
+.other-message > span, .self-message > span {
   padding: 10px;
   border: 1px solid #ebebeb;
   background-color: #fff;
@@ -240,14 +252,13 @@ body {
   display: block;
   position: absolute;
   margin: auto;
-  top:0px;
+  top: 0px;
   right: 0px;
   bottom: 0px;
   left: 0px;
 }
 
 .chat-l-upload img {
-  display: none;
   width: 100%;
   height: 100%;
 }
@@ -340,8 +351,12 @@ body {
 }
 
 @keyframes newmessage {
-  from {background-color: #eee;}
-  to {background-color: #f7e7be;}
+  from {
+    background-color: #eee;
+  }
+  to {
+    background-color: #f7e7be;
+  }
 }
 
 .new-message {

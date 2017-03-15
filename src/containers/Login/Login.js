@@ -2,6 +2,7 @@ import React, {Component, PropTypes} from 'react';
 import {connect} from 'react-redux';
 import {push} from 'react-router-redux';
 import Helmet from 'react-helmet';
+import Dropzone from 'react-dropzone';
 import * as authActions from 'redux/modules/auth';
 
 @connect(
@@ -15,12 +16,36 @@ export default class Login extends Component {
     push: PropTypes.func
   };
 
+  constructor(props, context) {
+    super(props, context);
+    this.state = {
+      files: [],
+      base: ''
+    };
+  }
+
+  onDrop = (files) => {
+    this.setState({files});
+    const reader = new FileReader();
+    reader.readAsDataURL(files[0]);
+    reader.onload = this.completeBase64;
+  };
+
+  upLoad = () => {
+    this.refs.dropZone.open();
+  };
+
+  completeBase64 = (event) => {
+    this.setState({base: event.target.result});
+  };
+
   showBack = () => {
     const againEle = this.refs['pass-again'];
     const goEle = this.refs['chat-submit'];
     const registerEle = this.refs['chat-register'];
     const contentEle = this.refs['name-write'];
     const backEle = this.refs['go-back'];
+    const {base} = this.state;
 
     if ($(againEle).css('display') === 'none') {
       $(againEle).slideDown(300);
@@ -34,8 +59,10 @@ export default class Login extends Component {
       const passwordAgain = this.refs['chat-again'].value;
       if ((password !== passwordAgain) || password === '') {
         alert('密码不一致或不能为空');
+      } else if (!base) {
+        alert('请上传头像');
       } else {
-        this.props.register({name, password}, () => {
+        this.props.register({name, password, file: base}, () => {
           this.props.push('/chat');
         });
       }
@@ -64,6 +91,8 @@ export default class Login extends Component {
   };
 
   render() {
+    const {files} = this.state;
+    const preview = files.length > 0 ? files[files.length - 1].preview : '';
     return (
       <div ref="name-write" className="chat-login">
         <Helmet title="Login"/>
@@ -71,8 +100,11 @@ export default class Login extends Component {
           欢迎登录聊天系统
         </div>
         <div className="chat-l-upload">
-          <img src=""/>
-          <span>点击上传</span>
+          {preview && <img src={preview}/>}
+          <div style={{display: 'none'}}>
+            <Dropzone ref="dropZone" onDrop={this.onDrop}/>
+          </div>
+          <span onClick={this.upLoad}>{preview ? '' : '点击上传'}</span>
         </div>
         <input className="upload" ref="upload" type="file"/>
         <div className="chat-l-name">

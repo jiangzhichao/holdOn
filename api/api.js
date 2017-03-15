@@ -1,3 +1,4 @@
+import path from 'path';
 import express from 'express';
 import session from 'express-session';
 import bodyParser from 'body-parser';
@@ -29,7 +30,7 @@ app.use(session({
     url: 'mongodb://localhost/jzc'
   })
 }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '5mb'}));
 app.use((req, res) => {
   const splittedUrlPath = req.url.split('?')[0].split('/').slice(1);
   const {action, params} = mapUrl(actions, splittedUrlPath);

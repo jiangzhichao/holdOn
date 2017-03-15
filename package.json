@@ -124,6 +124,7 @@
     "react": "0.14.8",
     "react-bootstrap": "^0.28.1",
     "react-dom": "0.14.8",
+    "react-dropzone": "^3.12.0",
     "react-helmet": "^2.2.0",
     "react-inline-css": "^2.0.0",
     "react-redux": "^4.0.0",

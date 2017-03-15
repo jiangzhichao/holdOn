@@ -164,13 +164,14 @@ export function logout() {
 }
 
 // register
-function _register({name, password}) {
+function _register({name, password, file}) {
   return {
     types: [REGISTER, REGISTER_SUCCESS, REGISTER_FAIL],
     promise: (client) => client.post('/admin/register', {
       data: {
         name,
-        password
+        password,
+        file
       }
     })
   };

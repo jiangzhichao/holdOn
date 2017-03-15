@@ -34,7 +34,8 @@ export default class Chat extends Component {
       adminList: [],
       message: store.get('message') || {},
       editMessage: '',
-      newMessageObj: {}
+      newMessageObj: {},
+      once: true
     };
   }
 
@@ -77,7 +78,6 @@ export default class Chat extends Component {
       message[data._id].push(data);
     }
     store.set('message', message);
-    // if (currentUser.userId !== data._id)
     newMessageObj[data._id] = data;
     this.setState({
       newMessageObj,
@@ -104,9 +104,6 @@ export default class Chat extends Component {
 
     socket.on('userList', (data) => {
       const {adminList} = this.state;
-      this.setState({
-        currentUser: data[0]
-      });
       this.checkOnline(adminList, data);
     });
 
@@ -137,6 +134,7 @@ export default class Chat extends Component {
   };
 
   checkOnline = (allAdmin, userList) => {
+    const {once, socket} = this.state;
     const adminList = allAdmin.map((item) => {
       const result = {...item};
       for (let index = 0, len = userList.length; index < len; index++) {
@@ -157,18 +155,28 @@ export default class Chat extends Component {
       if (!one.online && !two.online) return 0;
     });
 
+    if (once) {
+      this.setState({
+        once: false,
+        currentUser: {...adminList[0], userId: adminList[0]._id, id: socket.id}
+      });
+    }
+
     this.setState({
       adminList,
       userList
     });
   };
 
-  changeCurrentUser = (userId, name, id) => {
+  changeCurrentUser = (item) => {
+    item.id = item.socketId;
+    item.userId = item._id;
+    const {userId} = item;
     const {newMessageObj} = this.state;
     delete newMessageObj[userId];
     this.setState({
       newMessageObj,
-      currentUser: {userId, name, id}
+      currentUser: item
     });
   };
 
@@ -202,7 +210,19 @@ export default class Chat extends Component {
     });
   };
 
+  checkMsgLine = (val = '') => {
+    const valSplit = val.split('<br/>');
+    return valSplit.map((item, index) => {
+      return (
+        <span key={`msg${index}`}>
+          {item}<br/>
+        </span>
+      );
+    });
+  };
+
   rendMessage = () => {
+    const {user} = this.props;
     const {message, currentUser} = this.state;
     const messageArray = message[currentUser.userId] || [];
     return messageArray.map((item, index) => {
@@ -211,13 +231,13 @@ export default class Chat extends Component {
           <div className="chat-other line" key={`server${index}`}>
             <div className="other-left">
               <div className="other-small">
-
+                {currentUser.avatar_url && <img src={currentUser.avatar_url}/>}
               </div>
             </div>
             <div className="other-right">
               <h3>{item.name}</h3>
               <div className="other-message">
-                <span>{item.val}</span>
+                <span>{this.checkMsgLine(item.val)}</span>
               </div>
             </div>
           </div>
@@ -227,13 +247,13 @@ export default class Chat extends Component {
           <div className="chat-self line" key={`self${index}`}>
             <div className="self-right">
               <div className="self-small">
-
+                {user.avatar_url && <img src={user.avatar_url}/>}
               </div>
             </div>
             <div className="self-left">
               <h3>{item.name}</h3>
               <div className="self-message">
-                <span>{item.val}</span>
+                <span>{this.checkMsgLine(item.val)}</span>
               </div>
             </div>
           </div>
@@ -259,12 +279,13 @@ export default class Chat extends Component {
 
     return adminList.map((item, index) => {
       const messageArray = message[item._id];
-      const lastMessage = messageArray ? messageArray[messageArray.length - 1].val : ' - - - ';
+      const lastMessage = messageArray ? messageArray[messageArray.length - 1].val : '';
       return (
         <li key={`admins${index}`}
             className={checkClass(item)}
-            onClick={this.changeCurrentUser.bind(this, item._id, item.name, item.socketId)}>
+            onClick={this.changeCurrentUser.bind(this, item)}>
           <div className={item.online ? 'user-avatar online' : 'user-avatar'}>
+            {item.avatar_url && <img src={item.avatar_url} style={item.online ? {} : {filter: 'grayscale(100%)'}}/>}
           </div>
           <div className="user-info">
             <h2>{item.name}</h2>

@@ -1,4 +1,5 @@
 import '../../models/Admin';
+import '../../models/File';
 
 export register from './register';
 export login from './login';
