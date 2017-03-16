@@ -1,5 +1,4 @@
-require('babel-polyfill');
-
+// require('babel-polyfill');
 const environment = {
   development: {
     isProduction: false

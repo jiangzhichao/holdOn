@@ -34,7 +34,6 @@ export default class Chat extends Component {
       message: store.get('message') || {},
       editMessage: '',
       newMessageObj: {},
-      once: true
     };
   }
 
@@ -43,7 +42,7 @@ export default class Chat extends Component {
   }
 
   componentDidMount() {
-    if (Notification) Notification.requestPermission();
+    if (Notification && Notification.permission !== 'granted') Notification.requestPermission();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -65,10 +64,12 @@ export default class Chat extends Component {
   };
 
   receiveMsg = (data) => {
-    if (Notification) {
-      const notification = new Notification(data.name, {body: data.val});
-      console.log(notification);
-    }
+    const notify = new Notification(data.name, {body: data.val});
+    notify.onclick = function windowFocus() {
+      window.focus();
+    };
+    setTimeout(() => notify.close(), 3000);
+
     data.type = 'server';
     const {message, adminList, newMessageObj} = this.state;
     if (message[data._id]) {
@@ -95,7 +96,7 @@ export default class Chat extends Component {
       this.setState({socket});
       socket.emit('name', {
         name,
-        id: _id
+        _id
       });
     });
 
@@ -115,12 +116,8 @@ export default class Chat extends Component {
     });
 
     socket.on('removeUser', (data) => {
-      let {userList} = this.state;
-      const {adminList} = this.state;
-      userList = userList.filter((item) => {
-        return item.id !== data.id;
-      });
-      this.checkOnline(adminList, userList);
+      const {adminList, userList} = this.state;
+      this.checkOnline(adminList, userList.filter(item => item.id !== data.id));
     });
 
     socket.on('message', (dataServer) => {
@@ -135,17 +132,17 @@ export default class Chat extends Component {
   };
 
   checkOnline = (allAdmin, userList) => {
-    const {once, socket} = this.state;
+    const {currentUser} = this.state;
     const adminList = allAdmin.map((item) => {
       const result = {...item};
       for (let index = 0, len = userList.length; index < len; index++) {
-        if (item._id === userList[index].userId) {
+        if (item._id === userList[index]._id) {
           result.online = true;
-          result.socketId = userList[index].id;
+          result.id = userList[index].id;
           break;
         } else {
           result.online = false;
-          result.socketId = '';
+          result.id = '';
         }
       }
       return result;
@@ -156,12 +153,7 @@ export default class Chat extends Component {
       if (!one.online && !two.online) return 0;
     });
 
-    if (once) {
-      this.setState({
-        once: false,
-        currentUser: {...adminList[0], userId: adminList[0]._id, id: socket.id}
-      });
-    }
+    if (!currentUser._id) this.setState({currentUser: adminList[0]});
 
     this.setState({
       adminList,
@@ -170,11 +162,9 @@ export default class Chat extends Component {
   };
 
   changeCurrentUser = (item) => {
-    item.id = item.socketId;
-    item.userId = item._id;
-    const {userId} = item;
+    const {_id} = item;
     const {newMessageObj} = this.state;
-    delete newMessageObj[userId];
+    delete newMessageObj[_id];
     this.setState({
       newMessageObj,
       currentUser: item
@@ -185,7 +175,7 @@ export default class Chat extends Component {
     const {currentUser, socket, editMessage, message} = this.state;
     const {name, _id} = this.props.user;
     const val = editMessage.replace(/[\r\n]/g, '<br/>');
-    const sendMsg = {id: currentUser.id, val, name, _id, type: 'self', to: currentUser.userId};
+    const sendMsg = {id: currentUser.id, val, name, _id, type: 'self', to: currentUser._id};
     socket.emit('message', sendMsg);
 
     if (message[currentUser.userId]) {
@@ -229,7 +219,7 @@ export default class Chat extends Component {
   rendMessage = () => {
     const {user} = this.props;
     const {message, currentUser} = this.state;
-    const messageArray = message[currentUser.userId] || [];
+    const messageArray = message[currentUser._id] || [];
     return messageArray.map((item, index) => {
       if (item.type === 'server') {
         return (
@@ -272,33 +262,34 @@ export default class Chat extends Component {
 
     function checkClass(item) {
       let className = '';
-      if ((item._id === currentUser.userId) && !newMessageObj[item._id]) {
+      if ((item._id === currentUser._id) && !newMessageObj[item._id]) {
         className = 'active';
-      } else if ((item._id === currentUser.userId) && newMessageObj[item._id]) {
+      } else if ((item._id === currentUser._id) && newMessageObj[item._id]) {
         className = 'active new-message';
-      } else if (!(item._id === currentUser.userId) && newMessageObj[item._id]) {
+      } else if (!(item._id === currentUser._id) && newMessageObj[item._id]) {
         className = 'new-message';
       }
       return className;
     }
 
-    return adminList.map((item, index) => {
-      const messageArray = message[item._id];
-      const lastMessage = messageArray ? messageArray[messageArray.length - 1].val : '';
-      return (
-        <li key={`admins${index}`}
-            className={checkClass(item)}
-            onClick={this.changeCurrentUser.bind(this, item)}>
-          <div className={item.online ? 'user-avatar online' : 'user-avatar'}>
-            {item.avatar_url && <img src={item.avatar_url} style={item.online ? {} : {filter: 'grayscale(100%)'}}/>}
-          </div>
-          <div className="user-info">
-            <h2>{item.name}</h2>
-            {lastMessage}
-          </div>
-        </li>
-      );
-    });
+    return adminList ?
+      adminList.map((item, index) => {
+        const messageArray = message[item._id];
+        const lastMessage = messageArray ? messageArray[messageArray.length - 1].val : '';
+        return (
+          <li key={`admins${index}`}
+              className={checkClass(item)}
+              onClick={this.changeCurrentUser.bind(this, item)}>
+            <div className={item.online ? 'user-avatar online' : 'user-avatar'}>
+              {item.avatar_url && <img src={item.avatar_url} style={item.online ? {} : {filter: 'grayscale(100%)'}}/>}
+            </div>
+            <div className="user-info">
+              <h2>{item.name}</h2>
+              {lastMessage}
+            </div>
+          </li>
+        );
+      }) : '';
   };
 
   renderTitle = () => {
@@ -311,7 +302,7 @@ export default class Chat extends Component {
   };
 
   render() {
-    console.log('chat state -->', this.state);
+    console.log('chat state ----->', this.state);
     const {editMessage} = this.state;
     return (
       <div className="chat-home">

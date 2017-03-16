@@ -57,6 +57,7 @@ module.exports = {
 
     // css files from the extract-text-plugin loader
     new ExtractTextPlugin('[name]-[chunkhash].css', {allChunks: true}),
+
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: '"production"'

@@ -30,15 +30,16 @@ export default function ioConnect(io, runnable) {
     });
 
     socket.on('name', (data) => {
-      sendOffLineMsg(data.id).then((doc) => {
+      const {_id, name} = data;
+      sendOffLineMsg(_id).then((doc) => {
         socket.emit('message', doc);
       });
-      socket.name = data.name;
-      socket.userId = data.id;
-      socket.broadcast.emit('addUser', {name: data.name, id: socket.id, userId: data.id});
+      socket.name = name;
+      socket._id = _id;
+      socket.broadcast.emit('addUser', {name, _id, id: socket.id});
       const sockets = io.sockets.sockets;
       socket.emit('userList', Object.keys(sockets).map((item) => {
-        return {id: item, name: sockets[item]['name'], userId: sockets[item]['userId']};
+        return {id: item, name: sockets[item]['name'], _id: sockets[item]._id};
       }));
     });
 
