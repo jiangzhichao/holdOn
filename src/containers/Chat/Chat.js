@@ -7,6 +7,7 @@ import Helmet from 'react-helmet';
 import io from 'socket.io-client';
 import {getAllAdmin} from 'redux/modules/auth';
 import store from 'store';
+import Dropzone from 'react-dropzone';
 
 @connect(
   state => ({
@@ -34,6 +35,8 @@ export default class Chat extends Component {
       message: store.get('message') || {},
       editMessage: '',
       newMessageObj: {},
+      files: [],
+      base: '',
     };
   }
 
@@ -58,9 +61,25 @@ export default class Chat extends Component {
     if (eles.length > 0) eles[eles.length - 1].scrollIntoView();
   }
 
+  onDrop = (files) => {
+    this.setState({files});
+    const reader = new FileReader();
+    reader.readAsDataURL(files[0]);
+    reader.onload = this.completeBase64;
+  };
+
   _getAllAdmin = () => {
     this.props.getAllAdmin(() => {
     });
+  };
+
+  upLoad = () => {
+    this.refs.dropZone.open();
+  };
+
+  completeBase64 = (event) => {
+    this.setState({base: event.target.result});
+    this.sendMessage();
   };
 
   receiveMsg = (data) => {
@@ -172,22 +191,23 @@ export default class Chat extends Component {
   };
 
   sendMessage = () => {
-    const {currentUser, socket, editMessage, message} = this.state;
+    const {currentUser, socket, editMessage, message, base} = this.state;
     const {name, _id} = this.props.user;
     const val = editMessage.replace(/[\r\n]/g, '<br/>');
-    const sendMsg = {id: currentUser.id, val, name, _id, type: 'self', to: currentUser._id};
+    const sendMsg = {id: currentUser.id, val, name, _id, type: 'self', to: currentUser._id, base};
     socket.emit('message', sendMsg);
 
-    if (message[currentUser.userId]) {
-      if (message[currentUser.userId].length > 100) message[currentUser.userId].shift();
-      message[currentUser.userId].push(sendMsg);
+    if (message[currentUser._id]) {
+      if (message[currentUser._id].length > 100) message[currentUser.userId].shift();
+      message[currentUser._id].push(sendMsg);
     } else {
-      message[currentUser.userId] = [];
-      message[currentUser.userId].push(sendMsg);
+      message[currentUser._id] = [];
+      message[currentUser._id].push(sendMsg);
     }
     store.set('message', message);
     this.setState({
       message,
+      base: '',
       editMessage: ''
     });
   };
@@ -232,7 +252,11 @@ export default class Chat extends Component {
             <div className="other-right">
               <h3>{item.name}</h3>
               <div className="other-message">
-                <span>{this.checkMsgLine(item.val)}</span>
+                <span>
+                  {this.checkMsgLine(item.val)}
+                  {item.base && <span><img src={item.base}/></span>}
+                </span>
+
               </div>
             </div>
           </div>
@@ -248,7 +272,10 @@ export default class Chat extends Component {
             <div className="self-left">
               <h3>{item.name}</h3>
               <div className="self-message">
-                <span>{this.checkMsgLine(item.val)}</span>
+                <span>
+                  {this.checkMsgLine(item.val)}
+                  {item.base && <span><img src={item.base}/></span>}
+                  </span>
               </div>
             </div>
           </div>
@@ -331,8 +358,12 @@ export default class Chat extends Component {
               {this.rendMessage()}
             </div>
             <div className="chat-send">
-                <textarea onChange={this.editMessage} onKeyDown={this.sendKeyDown} className="text-area" autoFocus
-                          id="send-text" ref="send-text" value={editMessage}>
+              <div style={{display: 'none'}}>
+                <Dropzone ref="dropZone" onDrop={this.onDrop}/>
+              </div>
+              <div onClick={this.upLoad} className="send-image">发送图片</div>
+              <textarea onChange={this.editMessage} onKeyDown={this.sendKeyDown} className="text-area" autoFocus
+                        id="send-text" ref="send-text" value={editMessage}>
                 </textarea>
               <div onClick={this.sendMessage} className="send-btn">发送</div>
             </div>

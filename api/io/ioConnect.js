@@ -6,28 +6,9 @@ import sendOffLineMsg from './sendOffLineMsg';
 
 
 export default function ioConnect(io, runnable) {
-  const bufferSize = 100;
-  const messageBuffer = new Array(bufferSize);
-  let messageIndex = 0;
 
   io.on('connection', (socket) => {
     socket.emit('info', 'socket connect success');
-    socket.on('history', () => {
-      for (let index = 0; index < bufferSize; index++) {
-        const msgNo = (messageIndex + index) % bufferSize;
-        const msg = messageBuffer[msgNo];
-        if (msg) {
-          socket.emit('msg', msg);
-        }
-      }
-    });
-
-    socket.on('msg', (data) => {
-      data.id = messageIndex;
-      messageBuffer[messageIndex % bufferSize] = data;
-      messageIndex++;
-      io.emit('msg', data);
-    });
 
     socket.on('name', (data) => {
       const {_id, name} = data;
