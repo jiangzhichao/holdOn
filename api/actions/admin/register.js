@@ -29,9 +29,9 @@ export default function register(req) {
             const imageName = `${randomString()}.${buffer.type.split('/')[1]}`;
             const imagePath = `${config.uploadFolder}/${imageName}`;
 
-            fs.writeFile(imagePath, buffer.data, (err) => {
-              if (err) {
-                console.log(err);
+            fs.writeFile(imagePath, buffer.data, (error) => {
+              if (error) {
+                reject({msg: '存储图片失败!', error});
               } else {
                 const file = {};
                 file.name = imageName;
@@ -46,7 +46,6 @@ export default function register(req) {
                 delete user.password;
                 req.session.user = user;
                 resolve({
-                  code: 1000,
                   user: user,
                 });
               }
@@ -54,12 +53,11 @@ export default function register(req) {
           } else {
             user.save((error) => {
               if (error) {
-                reject({msg: error});
+                reject({msg: '用户注册失败!', error});
               } else {
                 delete user.password;
                 req.session.user = user;
                 resolve({
-                  code: 1000,
                   user: user,
                 });
               }
@@ -68,7 +66,7 @@ export default function register(req) {
         }
       });
     } else {
-      reject({msg: '缺少参数!'});
+      reject({msg: '缺少用户名或密码!'});
     }
   });
 }

@@ -4,17 +4,19 @@
 import saveOffLineMsg from './saveOffLineMsg';
 import sendOffLineMsg from './sendOffLineMsg';
 
-
 export default function ioConnect(io, runnable) {
 
+  let inlineSum = 0;
   io.on('connection', (socket) => {
-    socket.emit('info', 'socket connect success');
-
     socket.on('name', (data) => {
+      inlineSum++;
       const {_id, name} = data;
-      sendOffLineMsg(_id).then((doc) => {
-        socket.emit('message', doc);
-      });
+      sendOffLineMsg(_id)
+        .then((doc) => {
+          socket.emit('message', doc);
+        }, (error) => {
+          if (error) console.log(error);
+        });
       socket.name = name;
       socket._id = _id;
       socket.broadcast.emit('addUser', {name, _id, id: socket.id});
@@ -22,10 +24,13 @@ export default function ioConnect(io, runnable) {
       socket.emit('userList', Object.keys(sockets).map((item) => {
         return {id: item, name: sockets[item]['name'], _id: sockets[item]._id};
       }));
+      io.sockets.emit('info', {inlineSum});
     });
 
     socket.on('disconnect', () => {
+      inlineSum--;
       io.sockets.emit('removeUser', {id: socket.id});
+      io.sockets.emit('info', {inlineSum});
     });
 
     socket.on('message', (data) => {
@@ -35,7 +40,6 @@ export default function ioConnect(io, runnable) {
         toSocket.emit('message', data);
       } else {
         delete data.id;
-        data.type = 'server';
         saveOffLineMsg(data);
       }
     });

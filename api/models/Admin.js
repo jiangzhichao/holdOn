@@ -4,9 +4,9 @@ const ObjectId = mongoose.Schema.Types.ObjectId;
 
 const AdminSchema = mongoose.Schema({
 
-  name         : { type: String, required: true},
+  name         : {type: String, required: true},
   nick_name    : String,
-  password     : { type: String, required: true},
+  password     : {type: String, required: true},
   avatar       : {type: ObjectId, ref: 'File'},
   avatar_url   : String,
   create_time  : {type: Date, default: Date.now},
@@ -14,12 +14,10 @@ const AdminSchema = mongoose.Schema({
   message_off_line: {type: Array},
 });
 
-// generating a hash
 AdminSchema.methods.generateHash = function(password) {
   return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
 };
 
-// checking if password is valid
 AdminSchema.methods.validPassword = function(password) {
   return bcrypt.compareSync(password, this.password);
 };
