@@ -5,24 +5,25 @@ import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import Helmet from 'react-helmet';
 import io from 'socket.io-client';
-import { getAllAdmin } from 'redux/modules/auth';
-import store from 'store';
+import { getAllAdmin, getAllMsg } from 'redux/modules/auth';
+// import store from 'store';
 import Dropzone from 'react-dropzone';
 
 @connect(
   state => ({
     allAdmin: state.auth.allAdmin,
-    user: state.auth.user
+    user: state.auth.user,
   }),
   {
-    getAllAdmin
+    getAllAdmin, getAllMsg
   }
 )
 export default class Chat extends Component {
   static propTypes = {
     user: PropTypes.object,
     getAllAdmin: PropTypes.func,
-    allAdmin: PropTypes.array
+    getAllMsg: PropTypes.func,
+    allAdmin: PropTypes.array,
   };
 
   constructor(props, context) {
@@ -32,13 +33,13 @@ export default class Chat extends Component {
       userList: [],
       currentUser: {},
       adminList: [],
-      message: store.get('message') || {},
+      message: {},
       editMessage: '',
       newMessageObj: {},
       files: [],
       base: '',
       fileName: '',
-      inlineSum: 0
+      onlineSum: 0
     };
   }
 
@@ -75,10 +76,6 @@ export default class Chat extends Component {
     });
   };
 
-  clearStore = () => {
-    store.clearAll();
-  };
-
   upLoad = () => {
     this.refs.dropZone.open();
   };
@@ -104,7 +101,6 @@ export default class Chat extends Component {
     if (message[data._id].length > 99) message[data._id].shift();
 
     message[data._id].push(data);
-    store.set('message', message);
     newMessageObj[data._id] = data;
     this.setState({
       newMessageObj,
@@ -126,8 +122,8 @@ export default class Chat extends Component {
     });
 
     socket.on('info', (data = {}) => {
-      const {inlineSum} = data;
-      this.setState({inlineSum});
+      const {onlineSum} = data;
+      this.setState({onlineSum});
     });
 
     socket.on('userList', (data) => {
@@ -159,7 +155,7 @@ export default class Chat extends Component {
   };
 
   checkOnline = (allAdmin, userList) => {
-    const {currentUser} = this.state;
+    const {currentUser, message} = this.state;
     const adminList = allAdmin.map((item) => {
       const result = {...item};
       for (let index = 0, len = userList.length; index < len; index++) {
@@ -179,7 +175,25 @@ export default class Chat extends Component {
       if ((!one.online && !two.online) || (one.online && two.online)) return 0;
     });
 
-    if (!currentUser._id) this.setState({currentUser: adminList[0]});
+    if (!currentUser._id) {
+      this.props.getAllMsg({come: adminList[0]._id, to: this.props.user._id}, ({msg}) => {
+        if (msg) {
+          message[adminList[0]._id] = msg.map((item) => {
+            return {
+              ...item.msg,
+              type: item.come === this.props.user._id ? 'self' : 'server'
+            };
+          });
+        } else {
+          message[adminList[0]._id] = [];
+        }
+
+        this.setState({
+          currentUser: adminList[0],
+          message
+        });
+      });
+    }
 
     this.setState({
       adminList,
@@ -189,8 +203,28 @@ export default class Chat extends Component {
 
   changeCurrentUser = (item) => {
     const {_id} = item;
-    const {newMessageObj} = this.state;
+    const {newMessageObj, message} = this.state;
     delete newMessageObj[_id];
+
+    if (!message[_id]) {
+      this.props.getAllMsg({come: _id, to: this.props.user._id}, ({msg}) => {
+        if (msg) {
+          message[_id] = msg.map((ditem) => {
+            return {
+              ...ditem.msg,
+              type: ditem.come === this.props.user._id ? 'self' : 'server'
+            };
+          });
+        } else {
+          message[_id] = [];
+        }
+
+        this.setState({
+          message
+        });
+      });
+    }
+
     this.setState({
       newMessageObj,
       currentUser: item
@@ -208,7 +242,6 @@ export default class Chat extends Component {
     if (!message[currentUser._id]) message[currentUser._id] = [];
 
     message[currentUser._id].push(sendMsg);
-    store.set('message', message);
     this.setState({
       message,
       base: '',
@@ -247,8 +280,7 @@ export default class Chat extends Component {
     const {message, currentUser} = this.state;
     const messageArray = message[currentUser._id] || [];
     return messageArray.map((item, index) => {
-      const {base, name, fileName, val} = item;
-      const isImage = base && (base.substring(0, base.indexOf(';'))).indexOf('image') > -1;
+      const {name, fileName, val} = item;
       if (item.type === 'server') {
         return (
           <div className="chat-other line" key={`server${index}`}>
@@ -262,9 +294,10 @@ export default class Chat extends Component {
               <div className="other-message">
                 <span>
                   {this.checkMsgLine(val)}
-                  {base && isImage && <span><img src={base}/></span>}
-                  {base && !isImage &&
-                  <span><a download={fileName} href={base}>{fileName}</a></span>}
+                  {fileName && (fileName.indexOf('jpg') > -1 || fileName.indexOf('png') > -1 || fileName.indexOf('jpeg') > -1) &&
+                  <span><img src={fileName}/></span>}
+                  {fileName && !(fileName.indexOf('jpg') > -1 || fileName.indexOf('png') > -1 || fileName.indexOf('jpeg') > -1) &&
+                  <span><a download={fileName} href={fileName}>{fileName}</a></span>}
                 </span>
               </div>
             </div>
@@ -283,10 +316,11 @@ export default class Chat extends Component {
               <div className="self-message">
                 <span>
                   {this.checkMsgLine(val)}
-                  {base && isImage && <span><img src={base}/></span>}
-                  {base && !isImage &&
-                  <span><a download={fileName} href={base}>{fileName}</a></span>}
-                  </span>
+                  {fileName && (fileName.indexOf('jpg') > -1 || fileName.indexOf('png') > -1 || fileName.indexOf('jpeg') > -1) &&
+                  <span><img src={fileName}/></span>}
+                  {fileName && !(fileName.indexOf('jpg') > -1 || fileName.indexOf('png') > -1 || fileName.indexOf('jpeg') > -1) &&
+                  <span><a download={fileName} href={fileName}>{fileName}</a></span>}
+                </span>
               </div>
             </div>
           </div>
@@ -310,9 +344,10 @@ export default class Chat extends Component {
       return className;
     }
 
-    if (adminList) return adminList.map((item, index) => {
+    return (adminList || []).map((item, index) => {
       const messageArray = message[item._id];
-      const lastMessage = messageArray ? messageArray[messageArray.length - 1].val : '';
+      const lastMessage = (messageArray && messageArray.length > 0)
+        ? messageArray[messageArray.length - 1].val : '';
       return (
         <li key={`admins${index}`}
             className={checkClass(item)}
@@ -331,10 +366,10 @@ export default class Chat extends Component {
 
   renderTitle = () => {
     const {name} = this.props.user;
-    const {socket, inlineSum} = this.state;
+    const {socket, onlineSum} = this.state;
     const {id = ' 连接中。。。 '} = socket;
     return (
-      <span className="me">{name + '(socket:' + id + ')'}<span>{`(在线人数: ${inlineSum}人 )`}</span></span>
+      <span className="me">{name + '(socket:' + id + ')'}<span>{`(在线人数: ${onlineSum}人 )`}</span></span>
     );
   };
 
@@ -351,7 +386,6 @@ export default class Chat extends Component {
             <li className="small"></li>
             <li className="big"></li>
           </ul>
-          <button onClick={this.clearStore}>清除缓存</button>
         </div>
         <div className="chat-content">
           <div className="chat-left">

@@ -13,6 +13,9 @@ const REGISTER = 'jzc/auth/REGISTER';
 const ALL_ADMIN = 'jzc/auth/ALL_ADMIN';
 const ALL_ADMIN_SUCCESS = 'jzc/auth/ALL_ADMIN_SUCCESS';
 const ALL_ADMIN_FAIL = 'jzc/auth/ALL_ADMIN_FAIL';
+const ALL_MESSAGE = 'jzc/auth/ALL_MESSAGE';
+const ALL_MESSAGE_SUCCESS = 'jzc/auth/ALL_MESSAGE_SUCCESS';
+const ALL_MESSAGE_FAIL = 'jzc/auth/ALL_MESSAGE_FAIL';
 
 const initialState = {
   loaded: false,
@@ -111,6 +114,22 @@ export default function reducer(state = initialState, action = {}) {
         getAllAdmin: false,
         allAdminError: action.error
       };
+    case ALL_MESSAGE:
+      return {
+        ...state,
+        msg: null,
+      };
+    case ALL_MESSAGE_SUCCESS:
+      return {
+        ...state,
+        msg: action.result.msg,
+      };
+    case ALL_MESSAGE_FAIL:
+      return {
+        ...state,
+        msg: null,
+        msgError: action.error
+      };
     default:
       return state;
   }
@@ -147,7 +166,7 @@ export function login(data, callback) {
   };
 }
 
-export function _getAllAdmin() {
+function _getAllAdmin() {
   return {
     types: [ALL_ADMIN, ALL_ADMIN_SUCCESS, ALL_ADMIN_FAIL],
     promise: (client) => client.get('/admin/all')
@@ -163,6 +182,24 @@ export function getAllAdmin(callback) {
   };
 }
 
+function _getAllMsg(params) {
+  return {
+    types: [ALL_MESSAGE, ALL_MESSAGE_SUCCESS, ALL_MESSAGE_FAIL],
+    promise: (client) => client.get('/message/all', {
+      params
+    })
+  };
+}
+
+export function getAllMsg(params, callback) {
+  return (dispatch) => {
+    dispatch(_getAllMsg(params))
+      .then((result) => {
+        if (callback) callback(result);
+      });
+  };
+}
+
 export function logout() {
   return {
     types: [LOGOUT, LOGOUT_SUCCESS, LOGOUT_FAIL],
@@ -171,15 +208,11 @@ export function logout() {
 }
 
 // register
-function _register({name, password, file}) {
+function _register(data) {
   return {
     types: [REGISTER, REGISTER_SUCCESS, REGISTER_FAIL],
     promise: (client) => client.post('/admin/register', {
-      data: {
-        name,
-        password,
-        file
-      }
+      data
     })
   };
 }

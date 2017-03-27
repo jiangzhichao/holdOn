@@ -3,13 +3,14 @@
  */
 import saveOffLineMsg from './saveOffLineMsg';
 import sendOffLineMsg from './sendOffLineMsg';
+import saveOnLineMsg from './saveOnLineMsg';
 
 export default function ioConnect(io, runnable) {
 
-  let inlineSum = 0;
+  let onlineSum = 0;
   io.on('connection', (socket) => {
     socket.on('name', (data) => {
-      inlineSum++;
+      onlineSum++;
       const {_id, name} = data;
       sendOffLineMsg(_id)
         .then((doc) => {
@@ -24,20 +25,26 @@ export default function ioConnect(io, runnable) {
       socket.emit('userList', Object.keys(sockets).map((item) => {
         return {id: item, name: sockets[item]['name'], _id: sockets[item]._id};
       }));
-      io.sockets.emit('info', {inlineSum});
+      io.sockets.emit('info', {onlineSum});
+
+      console.log('在线人数:', onlineSum);
     });
 
     socket.on('disconnect', () => {
-      inlineSum--;
+      onlineSum--;
       io.sockets.emit('removeUser', {id: socket.id});
-      io.sockets.emit('info', {inlineSum});
+      io.sockets.emit('info', {onlineSum});
+
+      console.log('在线人数:', onlineSum);
     });
 
     socket.on('message', (data) => {
       const {id} = data;
       const toSocket = io.sockets.sockets[id];
       if (toSocket) {
-        toSocket.emit('message', data);
+        saveOnLineMsg(data).then((doc) => {
+          toSocket.emit('message', doc);
+        });
       } else {
         delete data.id;
         saveOffLineMsg(data);
