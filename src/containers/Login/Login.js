@@ -1,5 +1,5 @@
-import React, {Component, PropTypes} from 'react';
-import {connect} from 'react-redux';
+import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux';
 import Helmet from 'react-helmet';
 import Dropzone from 'react-dropzone';
 import * as authActions from 'redux/modules/auth';
@@ -9,8 +9,8 @@ import * as authActions from 'redux/modules/auth';
   {...authActions})
 export default class Login extends Component {
   static propTypes = {
-    user: PropTypes.object,
-    login: PropTypes.func,
+    user    : PropTypes.object,
+    login   : PropTypes.func,
     register: PropTypes.func,
   };
 
@@ -18,7 +18,7 @@ export default class Login extends Component {
     super(props, context);
     this.state = {
       files: [],
-      base: ''
+      base : ''
     };
   }
 

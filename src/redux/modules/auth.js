@@ -18,7 +18,7 @@ const ALL_MESSAGE_SUCCESS = 'jzc/auth/ALL_MESSAGE_SUCCESS';
 const ALL_MESSAGE_FAIL = 'jzc/auth/ALL_MESSAGE_FAIL';
 
 const initialState = {
-  loaded: false,
+  loaded     : false,
   getAllAdmin: false
 };
 
@@ -33,33 +33,33 @@ export default function reducer(state = initialState, action = {}) {
       return {
         ...state,
         loading: false,
-        loaded: true,
-        user: action.result.user
+        loaded : true,
+        user   : action.result.user
       };
     case LOAD_FAIL:
       return {
         ...state,
         loading: false,
-        loaded: false,
-        error: action.error
+        loaded : false,
+        error  : action.error
       };
     case LOGIN:
       return {
         ...state,
         loggingIn: true,
-        user: null
+        user     : null
       };
     case LOGIN_SUCCESS:
       return {
         ...state,
         loggingIn: false,
-        user: action.result.user
+        user     : action.result.user
       };
     case LOGIN_FAIL:
       return {
         ...state,
-        loggingIn: false,
-        user: null,
+        loggingIn : false,
+        user      : null,
         loginError: action.error
       };
     case LOGOUT:
@@ -71,18 +71,18 @@ export default function reducer(state = initialState, action = {}) {
       return {
         ...state,
         loggingOut: false,
-        user: null
+        user      : null
       };
     case LOGOUT_FAIL:
       return {
         ...state,
-        loggingOut: false,
+        loggingOut : false,
         logoutError: action.error
       };
     case REGISTER:
       return {
         ...state,
-        user: null,
+        user       : null,
         registering: true,
       };
     case REGISTER_SUCCESS:
@@ -99,19 +99,19 @@ export default function reducer(state = initialState, action = {}) {
       return {
         ...state,
         getAllAdmin: false,
-        allAdmin: null
+        allAdmin   : null
       };
     case ALL_ADMIN_SUCCESS:
       return {
         ...state,
         getAllAdmin: true,
-        allAdmin: action.result.allAdmin
+        allAdmin   : action.result.allAdmin
       };
     case ALL_ADMIN_FAIL:
       return {
         ...state,
-        allAdmin: null,
-        getAllAdmin: false,
+        allAdmin     : null,
+        getAllAdmin  : false,
         allAdminError: action.error
       };
     case ALL_MESSAGE:
@@ -127,7 +127,7 @@ export default function reducer(state = initialState, action = {}) {
     case ALL_MESSAGE_FAIL:
       return {
         ...state,
-        msg: null,
+        msg     : null,
         msgError: action.error
       };
     default:
@@ -142,14 +142,14 @@ export function isLoaded(globalState) {
 
 export function load() {
   return {
-    types: [LOAD, LOAD_SUCCESS, LOAD_FAIL],
+    types  : [LOAD, LOAD_SUCCESS, LOAD_FAIL],
     promise: (client) => client.get('admin/loadAuth')
   };
 }
 
 function _login({name, password}) {
   return {
-    types: [LOGIN, LOGIN_SUCCESS, LOGIN_FAIL],
+    types  : [LOGIN, LOGIN_SUCCESS, LOGIN_FAIL],
     promise: (client) => client.post('/admin/login', {
       data: {
         name,
@@ -168,7 +168,7 @@ export function login(data, callback) {
 
 function _getAllAdmin() {
   return {
-    types: [ALL_ADMIN, ALL_ADMIN_SUCCESS, ALL_ADMIN_FAIL],
+    types  : [ALL_ADMIN, ALL_ADMIN_SUCCESS, ALL_ADMIN_FAIL],
     promise: (client) => client.get('/admin/all')
   };
 }
@@ -184,7 +184,7 @@ export function getAllAdmin(callback) {
 
 function _getAllMsg(params) {
   return {
-    types: [ALL_MESSAGE, ALL_MESSAGE_SUCCESS, ALL_MESSAGE_FAIL],
+    types  : [ALL_MESSAGE, ALL_MESSAGE_SUCCESS, ALL_MESSAGE_FAIL],
     promise: (client) => client.get('/message/all', {
       params
     })
@@ -202,7 +202,7 @@ export function getAllMsg(params, callback) {
 
 export function logout() {
   return {
-    types: [LOGOUT, LOGOUT_SUCCESS, LOGOUT_FAIL],
+    types  : [LOGOUT, LOGOUT_SUCCESS, LOGOUT_FAIL],
     promise: (client) => client.get('/logout')
   };
 }
@@ -210,7 +210,7 @@ export function logout() {
 // register
 function _register(data) {
   return {
-    types: [REGISTER, REGISTER_SUCCESS, REGISTER_FAIL],
+    types  : [REGISTER, REGISTER_SUCCESS, REGISTER_FAIL],
     promise: (client) => client.post('/admin/register', {
       data
     })

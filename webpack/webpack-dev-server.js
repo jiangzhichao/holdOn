@@ -9,14 +9,14 @@ var host = config.host || 'localhost';
 var port = (Number(config.port) + 1) || 3001;
 var serverOptions = {
   contentBase: 'http://' + host + ':' + port,
-  quiet: true,
-  noInfo: true,
-  hot: true,
-  inline: true,
-  lazy: false,
-  publicPath: webpackConfig.output.publicPath,
-  headers: {'Access-Control-Allow-Origin': '*'},
-  stats: {colors: true}
+  quiet      : true,
+  noInfo     : true,
+  hot        : true,
+  inline     : true,
+  lazy       : false,
+  publicPath : webpackConfig.output.publicPath,
+  headers    : {'Access-Control-Allow-Origin': '*'},
+  stats      : {colors: true}
 };
 
 var app = new Express();

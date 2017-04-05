@@ -5,7 +5,7 @@ export default function clientMiddleware(client) {
         return action(dispatch, getState);
       }
 
-      const { promise, types, ...rest } = action; // eslint-disable-line no-redeclare
+      const {promise, types, ...rest} = action; // eslint-disable-line no-redeclare
       if (!promise) {
         return next(action);
       }
@@ -17,7 +17,7 @@ export default function clientMiddleware(client) {
       actionPromise.then(
         (result) => next({...rest, result, type: SUCCESS}),
         (error) => next({...rest, error, type: FAILURE})
-      ).catch((error)=> {
+      ).catch((error) => {
         console.error('MIDDLEWARE ERROR:', error);
         next({...rest, error, type: FAILURE});
       });

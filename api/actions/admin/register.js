@@ -1,7 +1,7 @@
 /**
  * Created by isaac on 2/21/16.
  */
-import {decodeBase64Image, randomString} from '../../utils/util';
+import { decodeBase64Image, randomString } from '../../utils/util';
 import config from '../../config';
 import mongoose from 'mongoose';
 import fs from 'fs';

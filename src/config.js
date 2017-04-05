@@ -3,22 +3,22 @@ const environment = {
   development: {
     isProduction: false
   },
-  production: {
+  production : {
     isProduction: true
   }
 }[process.env.NODE_ENV || 'development'];
 
 module.exports = Object.assign({
-  host: process.env.HOST || 'localhost',
-  port: process.env.PORT,
+  host   : process.env.HOST || 'localhost',
+  port   : process.env.PORT,
   apiHost: process.env.APIHOST || 'localhost',
   apiPort: process.env.APIPORT,
-  app: {
-    title: 'Jzc Chat',
+  app    : {
+    title      : 'Jzc Chat',
     description: 'study day day up',
-    head: {
+    head       : {
       titleTemplate: 'Jzc: %s',
-      meta: [
+      meta         : [
         {name: 'description', content: 'Jzc Best'},
         {charset: 'utf-8'},
         {property: 'og:site_name', content: 'jzc'},

@@ -12,7 +12,7 @@ import Dropzone from 'react-dropzone';
 @connect(
   state => ({
     allAdmin: state.auth.allAdmin,
-    user: state.auth.user,
+    user    : state.auth.user,
   }),
   {
     getAllAdmin, getAllMsg
@@ -20,26 +20,26 @@ import Dropzone from 'react-dropzone';
 )
 export default class Chat extends Component {
   static propTypes = {
-    user: PropTypes.object,
+    user       : PropTypes.object,
     getAllAdmin: PropTypes.func,
-    getAllMsg: PropTypes.func,
-    allAdmin: PropTypes.array,
+    getAllMsg  : PropTypes.func,
+    allAdmin   : PropTypes.array,
   };
 
   constructor(props, context) {
     super(props, context);
     this.state = {
-      socket: {},
-      userList: [],
-      currentUser: {},
-      adminList: [],
-      message: {},
-      editMessage: '',
+      socket       : {},
+      userList     : [],
+      currentUser  : {},
+      adminList    : [],
+      message      : {},
+      editMessage  : '',
       newMessageObj: {},
-      files: [],
-      base: '',
-      fileName: '',
-      onlineSum: 0
+      files        : [],
+      base         : '',
+      fileName     : '',
+      onlineSum    : 0
     };
   }
 
@@ -244,9 +244,9 @@ export default class Chat extends Component {
     message[currentUser._id].push(sendMsg);
     this.setState({
       message,
-      base: '',
+      base       : '',
       editMessage: '',
-      fileName: ''
+      fileName   : ''
     });
   };
 
