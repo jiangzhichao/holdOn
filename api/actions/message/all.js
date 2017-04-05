@@ -5,7 +5,6 @@ export default function all(req) {
 
   return new Promise((resolve, reject) => {
     const {come, to} = req.query;
-    console.log(come, to);
     Message
       .find()
       .where({$or: [{come, to}, {come: to, to: come}]})

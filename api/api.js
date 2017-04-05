@@ -21,7 +21,6 @@ io.path('/ws');
 const {db, sessionDbConf, sessionDb} = dbConfig;
 mongoose.connect(db);
 app.use(session({...sessionDbConf, store: new MongoStore({url: sessionDb})}));
-
 app.use(bodyParser.json({limit: '5mb'}));
 app.use(resClear(actions));
 

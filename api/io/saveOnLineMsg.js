@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 const Admin = mongoose.model('Admin');
 const Message = mongoose.model('Message');
 const File = mongoose.model('File');
-import { decodeBase64Image } from '../utils/util';
 import config from '../config';
 import fs from 'fs';
 
@@ -24,10 +23,11 @@ export default function saveOnLineMsg(data) {
     }
 
     if (base) {
-      const buffer = decodeBase64Image(base);
+      const baseStr = base.split(';base64,')[1];
+      const buffer = new Buffer(baseStr, 'base64');
       const imagePath = `${config.uploadFolder}/${fileName}`;
 
-      fs.writeFile(imagePath, buffer.data, (error) => {
+      fs.writeFile(imagePath, buffer, (error) => {
         if (error) reject('文件写入失败:' + error);
         saveMsg();
       });

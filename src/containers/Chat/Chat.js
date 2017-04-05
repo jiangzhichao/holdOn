@@ -251,7 +251,7 @@ export default class Chat extends Component {
   };
 
   sendKeyDown = (event) => {
-    if (event.ctrlKey && event.keyCode === 13) {
+    if (event.keyCode === 13) {
       this.sendMessage();
     }
   };
@@ -280,7 +280,7 @@ export default class Chat extends Component {
     const {message, currentUser} = this.state;
     const messageArray = message[currentUser._id] || [];
     return messageArray.map((item, index) => {
-      const {name, fileName, val} = item;
+      const {name, fileName, val, base} = item;
       if (item.type === 'server') {
         return (
           <div className="chat-other line" key={`server${index}`}>
@@ -295,7 +295,7 @@ export default class Chat extends Component {
                 <span>
                   {this.checkMsgLine(val)}
                   {fileName && (fileName.indexOf('jpg') > -1 || fileName.indexOf('png') > -1 || fileName.indexOf('jpeg') > -1) &&
-                  <span><img src={fileName}/></span>}
+                  <span><img src={base || fileName}/></span>}
                   {fileName && !(fileName.indexOf('jpg') > -1 || fileName.indexOf('png') > -1 || fileName.indexOf('jpeg') > -1) &&
                   <span><a download={fileName} href={fileName}>{fileName}</a></span>}
                 </span>
@@ -317,7 +317,7 @@ export default class Chat extends Component {
                 <span>
                   {this.checkMsgLine(val)}
                   {fileName && (fileName.indexOf('jpg') > -1 || fileName.indexOf('png') > -1 || fileName.indexOf('jpeg') > -1) &&
-                  <span><img src={fileName}/></span>}
+                  <span><img src={base || fileName}/></span>}
                   {fileName && !(fileName.indexOf('jpg') > -1 || fileName.indexOf('png') > -1 || fileName.indexOf('jpeg') > -1) &&
                   <span><a download={fileName} href={fileName}>{fileName}</a></span>}
                 </span>
