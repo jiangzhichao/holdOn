@@ -11,8 +11,7 @@ import Dropzone from 'react-dropzone';
 
 @connect(
   state => ({
-    allAdmin: state.auth.allAdmin,
-    user    : state.auth.user,
+    allAdmin: state.auth.allAdmin, user: state.auth.user,
   }),
   {
     getAllAdmin, getAllMsg
