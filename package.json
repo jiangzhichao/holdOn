@@ -35,7 +35,8 @@
     "test"           : "karma start",
     "test-node"      : "./node_modules/mocha/bin/mocha $(find api -name '*-test.js') --compilers js:babel-core/register",
     "test-node-watch": "./node_modules/mocha/bin/mocha $(find api -name '*-test.js') --compilers js:babel-core/register --watch",
-    "start-mongod"   : "better-npm-run start-mongod"
+    "start-mongod"   : "better-npm-run start-mongod",
+    "pm2"            : "better-npm-run start-pm2"
   },
   "betterScripts"  : {
     "start-prod"    : {
@@ -89,6 +90,12 @@
     },
     "start-mongod"  : {
       "command": "mongod",
+      "env"    : {
+        "NODE_ENV": ""
+      }
+    },
+    "start-pm2"     : {
+      "command": "pm2 start process.json",
       "env"    : {
         "NODE_ENV": ""
       }
@@ -181,13 +188,10 @@
     "karma-cli"                   : "^0.1.1",
     "karma-mocha"                 : "^0.2.0",
     "karma-mocha-reporter"        : "^1.1.1",
-    "karma-phantomjs-launcher"    : "^0.2.1",
     "karma-sourcemap-loader"      : "^0.3.5",
     "karma-webpack"               : "^1.7.0",
     "mocha"                       : "^2.3.3",
     "node-sass"                   : "^3.4.2",
-    "phantomjs"                   : "^1.9.18",
-    "phantomjs-polyfill"          : "0.0.1",
     "react-a11y"                  : "^0.2.6",
     "react-addons-test-utils"     : "0.14.8",
     "react-transform-catch-errors": "^1.0.0",

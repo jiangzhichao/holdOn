@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-require('../server.babel'); // babel registration (runtime transpilation for node)
+require('../server.babel');
 const path = require('path');
 const rootDir = path.resolve(__dirname, '..');
 
@@ -10,12 +10,7 @@ global.__DISABLE_SSR__ = false;  // <----- DISABLES SERVER SIDE RENDERING FOR ER
 global.__DEVELOPMENT__ = process.env.NODE_ENV !== 'production';
 
 if (__DEVELOPMENT__) {
-  if (!require('piping')({
-      hook  : true,
-      ignore: /(\/\.|~$|\.json|\.scss$)/i
-    })) {
-    return;
-  }
+  if (!require('piping')({hook: true, ignore: /(\/\.|~$|\.json|\.scss$)/i})) return;
 }
 
 // https://github.com/halt-hammerzeit/webpack-isomorphic-tools

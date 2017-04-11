@@ -15,11 +15,9 @@ const app = express();
 const server = new http.Server(app);
 const io = new SocketIo(server);
 const MongoStore = ConnectMongo(session);
-
-io.path('/ws');
-
 const {db, sessionDbConf, sessionDb} = dbConfig;
 mongoose.connect(db);
+
 app.use(session({...sessionDbConf, store: new MongoStore({url: sessionDb})}));
 app.use(bodyParser.json({limit: '5mb'}));
 app.use(resClear(actions));

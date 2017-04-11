@@ -8,7 +8,10 @@ import saveOnLineMsg from './saveOnLineMsg';
 export default function ioConnect(io, runnable) {
 
   let onlineSum = 0;
+  io.path('/ws');
+
   io.on('connection', (socket) => {
+
     socket.on('name', (data) => {
       onlineSum++;
       const {_id, name} = data;

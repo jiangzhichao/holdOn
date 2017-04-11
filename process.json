@@ -1,13 +1,13 @@
 {
   "apps": [
     {
-      "name"           : "mongod-->start",
+      "name"           : "mongod",
       "script"         : "mongod",
       "watch"          : false,
       "log_date_format": "YYYY-MM-DD HH:mm Z"
     },
     {
-      "name"           : "server-->start",
+      "name"           : "server",
       "script"         : "bin/server.js",
       "watch"          : false,
       "log_date_format": "YYYY-MM-DD HH:mm Z",
@@ -19,7 +19,7 @@
       }
     },
     {
-      "name"           : "api-->start",
+      "name"           : "api",
       "script"         : "bin/api.js",
       "watch"          : false,
       "log_date_format": "YYYY-MM-DD HH:mm Z",
