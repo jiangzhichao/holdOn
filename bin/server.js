@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
 require('../server.babel');
-const path = require('path');
-const rootDir = path.resolve(__dirname, '..');
 
 global.__CLIENT__ = false;
 global.__SERVER__ = true;
@@ -14,6 +12,8 @@ if (__DEVELOPMENT__) {
 }
 
 // https://github.com/halt-hammerzeit/webpack-isomorphic-tools
+const path = require('path');
+const rootDir = path.resolve(__dirname, '..');
 const WebpackIsomorphicTools = require('webpack-isomorphic-tools');
 global.webpackIsomorphicTools = new WebpackIsomorphicTools(require('../webpack/webpack-isomorphic-tools'))
   .development(__DEVELOPMENT__)

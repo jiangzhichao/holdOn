@@ -23,10 +23,7 @@ const targetUrl = 'http://' + config.apiHost + ':' + config.apiPort;
 const pretty = new PrettyError();
 const app = new Express();
 const server = new http.Server(app);
-const proxy = httpProxy.createProxyServer({
-  target: targetUrl,
-  ws    : true
-});
+const proxy = httpProxy.createProxyServer({target: targetUrl, ws: true});
 
 app.use(compression());
 app.use(favicon(path.join(__dirname, '..', 'static', 'favicon.ico')));
@@ -34,7 +31,6 @@ app.use(favicon(path.join(__dirname, '..', 'static', 'favicon.ico')));
 app.use(Express.static(path.join(__dirname, '..', 'static')));
 app.use(Express.static(path.join(__dirname, '..', 'uploads')));
 
-// Proxy to API server
 app.use('/api', (req, res) => {
   proxy.web(req, res, {target: targetUrl});
 });
@@ -47,7 +43,6 @@ server.on('upgrade', (req, socket, head) => {
   proxy.ws(req, socket, head);
 });
 
-// added the error handling to avoid https://github.com/nodejitsu/node-http-proxy/issues/527
 proxy.on('error', (error, req, res) => {
   let json;
   if (error.code !== 'ECONNRESET') {
@@ -62,11 +57,9 @@ proxy.on('error', (error, req, res) => {
 });
 
 app.use((req, res) => {
-  if (__DEVELOPMENT__) {
-    // Do not cache webpack stats: the script file would change since
-    // hot module replacement is enabled in the development env
-    webpackIsomorphicTools.refresh();
-  }
+
+  if (__DEVELOPMENT__) webpackIsomorphicTools.refresh();
+
   const client = new ApiClient(req);
   const memoryHistory = createHistory(req.originalUrl);
   const store = createStore(memoryHistory, client);
@@ -111,14 +104,9 @@ app.use((req, res) => {
   });
 });
 
-if (config.port) {
-  server.listen(config.port, (err) => {
-    if (err) {
-      console.error(err);
-    }
-    console.info('----\n==> ✅  %s is running, talking to API server on %s.', config.app.title, config.apiPort);
-    console.info('==> 💻  Open http://%s:%s in a browser to view the app.', config.host, config.port);
-  });
-} else {
-  console.error('==>     ERROR: No PORT environment variable has been specified');
-}
+server.listen(config.port, (err) => {
+  if (err) console.error(err);
+  console.info('----\n==> ✅  %s is running, talking to API server on %s.', config.app.title, config.apiPort);
+  console.info('==> 💻  Open http://%s:%s in a browser to view the app.', config.host, config.port);
+});
+
